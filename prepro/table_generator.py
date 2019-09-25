@@ -2,8 +2,6 @@
 # coding: utf-8
 
 # In[48]:
-
-
 from pandas.io.json import json_normalize
 import pandas as pd
 import numpy as np
@@ -13,8 +11,13 @@ import matplotlib.pyplot as plt
 import sys
 import os.path
 import argparse
+import glob
+#from multiprocessing import process,managers
+import multiprocessing
+from utils import split_list
 
 def read_json_fun(file):
+    
     data = []
     temp = []
     data_str = open(file).read()
@@ -26,8 +29,20 @@ def read_json_fun(file):
     return data
 
 
+def save_parse_result(filelist, dataframes):
+    
+    dataframelist = []
+    for fullname in filelist:
+        #load_dir, filename = os.path.split(fullname)
+        print("Loading: {0}".format(fullname))       
+        single_dataframe = parse_json_files(fullname)
+        dataframelist.append(single_dataframe)
 
-def generator(opts):
+    # Extend the shared dataframe
+    dataframes.extend(dataframelist)
+
+    
+def parse_json_files(fullname):
     #df = pd.read_excel('Markov.xlsx')
     col = ['file_name','label','type','sa','da','sp','dp','pr','tls_scs','tls_ext_server_name','tls_c_key_length','http_content_type','http_user_agent','http_accept_language','http_server','http_code','dns_domain_name','dns_ttl','dns_num_ip','dns_domain_rank','formean','forvar','backmean','backvar','duration', 'tot_forpkts', 'tot_backpkts', 'tot_forpktsize', 'tot_backpktsize', 'maxforpktsize', 'minforpktsize', 'maxbackpktsize', 'minbackpktsize', 'numbytepersec', 'foriptmean', 'foriptstd', 'backiptmean', 'backiptstd', 'totfoript', 'totbackipt', 'maxfoript', 'minfoript', 'maxbackipt', 'minbackipt', 'numforpktpersec', 'numbackpktpersec', 'numpktpersec', 'ttlout', 'ttlin']
     for i in range(20):
@@ -40,15 +55,15 @@ def generator(opts):
         col.append(dist_str)
     col.append('entropy')
 
-   # df = pd.DataFrame(columns = col)
+    # df = pd.DataFrame(columns = col)
 
     #print(df.columns)
-    inputfile = opts.source_data_path
-    print('python input:',inputfile)
-    data = read_json_fun(inputfile)
-    fn = os.path.basename(inputfile)
+    #inputfile = opts.source_data_path
+    print('python input:', fullname)
+    data = read_json_fun(fullname)
+    fn = os.path.basename(fullname)
     title = os.path.splitext(fn)[0]
-    print('file = ',title)
+    print('file = ', title)
     
     if                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               (opts.type == 'default'):
         type = catgo(title, opts)
@@ -74,13 +89,14 @@ def generator(opts):
             df.loc[i,'label'] = 0
         if (i % 100 == 0):
             print('Processing:{}/{}'.format(i, num_iters))
-
+        
+    return df
     #Saving Dataframe into csv
-        out_file = opts.output_path
-        if (os.path.isfile(out_file)):
-            df.to_csv(out_file, mode = 'a',header = False)
-        else:
-            df.to_csv(out_file, header = col)
+        #out_file = opts.output_path
+        #if (os.path.isfile(out_file)):
+            #df.to_csv(out_file, mode = 'a',header = False)
+        #else:
+            #df.to_csv(out_file, header = col)
 
 
 def ttl_info(data, i, df):
@@ -94,7 +110,6 @@ def ttl_info(data, i, df):
             ttlin = data[i]['ip']['in']['ttl']
     df.loc[i,'ttlout'] = ttlout
     df.loc[i,'ttlin'] = ttlin
-    #return ttlout, ttlin
     
     
 def statisticfeature(data, i, df):
@@ -118,6 +133,7 @@ def statisticfeature(data, i, df):
     maxbackpktsize = 0
     minbackpktsize = 0
     numbytepersec = 0
+    
     if (data[i].__contains__("packets")):
         packets = data[i]['packets']
         j = 0
@@ -167,6 +183,7 @@ def statisticfeature(data, i, df):
                 minbackpktsize = min(backbyte)
             if duration != 0:
                 numbytepersec = (tot_backpktsize + tot_forpktsize) / duration
+                
     df.loc[i,'formean'] = formean
     df.loc[i,'forvar'] = forvar
     df.loc[i,'backmean'] = backmean
@@ -184,6 +201,7 @@ def statisticfeature(data, i, df):
 
    # return formean, forvar, backmean, backvar, duration
     #return tot_forpkts, tot_backpkts, tot_forpktsize, tot_backpktsize, maxforpktsize, minforpktsize, maxbackpktsize, minbackpktsize, numbytepersec
+
 
 def iptfeature(data, i, df):
     
@@ -205,6 +223,7 @@ def iptfeature(data, i, df):
     numforpktpersec = 0
     numbackpktpersec = 0
     numpktpersec = 0
+    
     if (data[i].__contains__("packets")):
         packets = data[i]['packets']
         j = 0
@@ -224,34 +243,41 @@ def iptfeature(data, i, df):
                     else:
                         backipt.append(packets[k]['ipt'])
                         backiptsum = backiptsum + packets[k]['ipt']
+                        
             if (len(foript) == 0):
                 foriptmean = 0
             else:
-                foriptmean = foriptsum/len(foript)
+                foriptmean = foriptsum / len(foript)
+                
             if (len(backipt) == 0):
                 backiptmean = 0
             else:
-                backiptmean = backiptsum/len(backipt)
+                backiptmean = backiptsum / len(backipt)
+                
             if (foriptmean != 0):
                 tmpsum = 0
                 for m in range(len(foript)):
                     tmpsum = tmpsum + (foript[m] - foriptmean) * (foript[m] - foriptmean)
                     totfoript = totfoript + foript[m]
-                foriptstd = (tmpsum/len(foript)) ** 0.5
+                    
+                foriptstd = (tmpsum / len(foript)) ** 0.5
                 maxfoript = max(foript)
                 minfoript = min(foript)
+                
                 if totfoript != 0:
-                    numforpktpersec = len(foript)/totfoript
+                    numforpktpersec = len(foript) / totfoript
+                    
             if (backiptmean != 0):
                 tmpsum = 0
                 for m in range(len(backipt)):
                     tmpsum = tmpsum + (backipt[m] - backiptmean) * (backipt[m] - backiptmean)
                     totbackipt = totbackipt + backipt[m]
-                backiptstd = (tmpsum/len(backipt)) ** 0.5
+                backiptstd = (tmpsum / len(backipt)) ** 0.5
                 maxbackipt = max(backipt)
                 minbackipt = min(backipt)
                 if totbackipt != 0:
-                    numbackpktpersec = len(backipt)/totbackipt
+                    numbackpktpersec = len(backipt) / totbackipt
+                    
             if totbackipt != 0 or totfoript != 0:
                 numpktpersec = (len(foript) + len(backipt)) / (totfoript + totbackipt)
     
@@ -273,8 +299,10 @@ def iptfeature(data, i, df):
     #return totfoript, totbackipt, maxfoript, minfoript, maxbackipt, minbackipt, numforpktpersec, numbackpktpersec, numpktpersec
 
 def byte_dist_info(data, i, df):
+    
     bdlist = []
     su = 0
+    
     if data[i].__contains__('byte_dist'):
         pakpd = data[i]['byte_dist']
         for n in pakpd:
@@ -294,9 +322,12 @@ def byte_dist_info(data, i, df):
         df.loc[i,'entropy'] = data[i]['entropy']
     else:
         df.loc[i,'entropy'] = -1
-        
+
+       
 def http_info(data, i, df):
+    
     http_col = ['http_content_type','http_user_agent','http_accept_language','http_server','http_code']
+    
     if data[i].__contains__("http"):
         http = data[i]['http'][0]
         if http.__contains__('in'):
@@ -323,6 +354,7 @@ def http_info(data, i, df):
         else:
             in_col = ['http_content_type','http_server','http_code']
             df.loc[i,in_col] = [k + '_NULL' for k in in_col]
+            
         if http.__contains__('out'):
             agent = False
             lang = False
@@ -347,6 +379,7 @@ def http_info(data, i, df):
 def dns_info(data, i, df):
     
     dns_col = ['dns_domain_name','dns_ttl','dns_num_ip','dns_domain_rank']
+    
     if data[i].__contains__("linked_dns"):
         dns = data[i]['linked_dns']
         num_ip = 0
@@ -441,7 +474,7 @@ def catgo(t, opts):
     if (opts.is_malware == 1):
         return 'malware'
     t = t.lower()
-    print('t=',t)
+    print('t=', t)
     if (t.find('email') !=  -1):
         return 'email'
     elif (t.find('chat') !=  -1):
@@ -502,17 +535,53 @@ def marcov(data, i, df):
         for k in range(20):
             splt_str = 'splt_' + str(j) + '_' + str(k) 
             df.loc[i,[splt_str]] = matrix[j][k]
+
+
+def multi_process_generate(load_dir, save_dir, savename):
+    """"
+    Extracts datapoints from all .json files in train_dir and saves the them in a new .csv file
+    :param load_dir: The directory to load from
+    :param save_dir: The directory to save the extracted headers
+    :param savename: The filename to save
+    :param num_headers: The amount of headers to use as datapoint
+    """
+    manager = multiprocessing.Manager()
+    dataframes = manager.list()
+    filelist = glob.glob(load_dir + '*.json')
+    splits_count = multiprocessing.cpu_count()
+    filesplits = split_list(filelist, splits_count)
+
+    threads = []
+    for split in filesplits:
+        # create a thread for each
+        t = multiprocessing.Process(target = save_parse_result, args=(split, dataframes))
+        threads.append(t)
+        t.start()
+    # create one large dataframe
+
+    for t in threads:
+        t.join()
+        print("Process joined: ", t)
+        
+    data = pd.concat(dataframes)
+    
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    data.to_csv(save_dir + savename, mode='w')
     
 
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Making Traffic Table')
     parser.add_argument('--source_data_path', type=str,
-                        default='../data/JSON/youtube1.json', dest='source_data_path',
+                        default='../data/JSON/', dest='source_data_path',
                         help='Path to source data')
     parser.add_argument('--output_path', type=str,
-                        default='table.csv', dest='output_path',
+                        default='../data', dest='output_path',
                         help='Path to output')
+    parser.add_argument('--output_file_name', type=str,
+                        default='table.csv', dest='output_file_name',
+                        help='file name for output')    
     parser.add_argument('--is_malware', type=int,
                         default=0, dest='is_malware',
                         help='Label it if it is malware')
@@ -523,6 +592,6 @@ if __name__ == "__main__":
 
     #inputfile=opts.source_data_path
     #print('python input:',inputfile)
-    generator(opts)
+    multi_process_generate(opts.source_data_path, opts.output_path, opts.output_file_name)
     print('---------process finished------\n')
 

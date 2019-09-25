@@ -92,14 +92,15 @@ def parse_json_files(fullname):
         if (i % 100 == 0):
             print('Processing:{}/{}'.format(i, num_iters))
         
-    return df
+    
     #Saving Dataframe into csv
-        #out_file = opts.output_path
-        #if (os.path.isfile(out_file)):
-            #df.to_csv(out_file, mode = 'a',header = False)
-        #else:
-            #df.to_csv(out_file, header = col)
-
+    out_file = opts.output_path
+    if (os.path.isfile(out_file)):
+        df.to_csv(out_file + title + '.csv', mode = 'a',header = False)
+    else:
+        df.to_csv(out_file + title + '.csv', header = col)
+        
+    return df
 
 def ttl_info(data, i, df):
     
@@ -574,6 +575,7 @@ def multi_process_generate(load_dir, save_dir, savename):
         t = multiprocessing.Process(target = save_parse_result, args=(split, dataframes))
         threads.append(t)
         t.start()
+        print(t.name + 'starting')
     # create one large dataframe
 
     for t in threads:

@@ -58,15 +58,24 @@ if __name__=="__main__":
     print(np.unique(df_drop['dns_domain_name']))
     print(np.unique(df_drop['http_code']))
     print(np.unique(df_drop['http_server']))
-    tls_ext_server_name_dummy = pd.get_dummies(df_drop['tls_ext_server_name'])
-    tls_scs_dummy = pd.get_dummies(df_drop['tls_scs'])
-    http_content_type_dummy = pd.get_dummies(df_drop['http_content_type'])
-    http_user_agent_dummy = pd.get_dummies(df_drop['http_user_agent'])
-    http_accept_language_dummy = pd.get_dummies(df_drop['http_accept_language'])
-    dns_domain_name_dummy = pd.get_dummies(df_drop['dns_domain_name'])
-    http_code_dummy = pd.get_dummies(df_drop['http_code'])
-    http_server_dummy = pd.get_dummies(df_drop['http_server'])
+    #tls_ext_server_name_dummy = pd.get_dummies(df_drop['tls_ext_server_name'])
+    #tls_scs_dummy = pd.get_dummies(df_drop['tls_scs'])
+    #http_content_type_dummy = pd.get_dummies(df_drop['http_content_type'])
+    #http_user_agent_dummy = pd.get_dummies(df_drop['http_user_agent'])
+    #http_accept_language_dummy = pd.get_dummies(df_drop['http_accept_language'])
+    #dns_domain_name_dummy = pd.get_dummies(df_drop['dns_domain_name'])
+    #http_code_dummy = pd.get_dummies(df_drop['http_code'])
+    #http_server_dummy = pd.get_dummies(df_drop['http_server'])    
     
+    dummy_columns = ['tls_ext_server_name', 'tls_scs', 'http_content_type', 'http_user_agent', 'http_accept_language', 'dns_domain_name', 'http_code', 'http_server']
+    for col in dummy_columns:
+        new_col = col + '_dummy'
+        df_drop[new_col] = df_drop[col].apply(pd.get_dummies)
+
+    #map(df_drop[col].apply(pd.get_dummies), )
+    df_drop.drop(dummy_columns)
+        
+        
     #table = table.drop(['label'], axis = 1)
     X_train = table.values
     print('train:', table.shape)

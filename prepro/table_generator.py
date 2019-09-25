@@ -539,7 +539,7 @@ def marcov(data, i, df):
 
 def multi_process_generate(load_dir, save_dir, savename):
     """"
-    Extracts datapoints from all .json files in train_dir and saves the them in a new .csv file
+    Extracts datapoints from all .json files in train_dir and saves them in a new .csv file
     :param load_dir: The directory to load from
     :param save_dir: The directory to save the extracted headers
     :param savename: The filename to save

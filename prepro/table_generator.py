@@ -56,7 +56,7 @@ def generator(opts):
         type = opts.type
 
     print('type = ', type)
-    NumIter = len(data)
+    num_iters = len(data)
     for i in range(0, len(data)):
         df = pd.DataFrame(columns = col)
         basic_info(data, i, df, type, title)
@@ -73,11 +73,11 @@ def generator(opts):
         else:
             df.loc[i,'label'] = 0
         if (i % 100 == 0):
-            print('Processing:{}/{}'.format(i, NumIter))
+            print('Processing:{}/{}'.format(i, num_iters))
 
     #Saving Dataframe into csv
         out_file = opts.output_path
-        if(os.path.isfile(out_file)):
+        if (os.path.isfile(out_file)):
             df.to_csv(out_file, mode = 'a',header = False)
         else:
             df.to_csv(out_file, header = col)
@@ -186,6 +186,7 @@ def statisticfeature(data, i, df):
     #return tot_forpkts, tot_backpkts, tot_forpktsize, tot_backpktsize, maxforpktsize, minforpktsize, maxbackpktsize, minbackpktsize, numbytepersec
 
 def iptfeature(data, i, df):
+    
     foriptmean = 0
     backiptmean = 0
     foriptstd = 0
@@ -296,8 +297,8 @@ def byte_dist_info(data, i, df):
         
 def http_info(data, i, df):
     http_col = ['http_content_type','http_user_agent','http_accept_language','http_server','http_code']
-    if data.__contains__("http"):
-        http = data['http'][0]
+    if data[i].__contains__("http"):
+        http = data[i]['http'][0]
         if http.__contains__('in'):
             code = False
             server = False
@@ -346,8 +347,8 @@ def http_info(data, i, df):
 def dns_info(data, i, df):
     
     dns_col = ['dns_domain_name','dns_ttl','dns_num_ip','dns_domain_rank']
-    if data.__contains__("linked_dns"):
-        dns = data['linked_dns']
+    if data[i].__contains__("linked_dns"):
+        dns = data[i]['linked_dns']
         num_ip = 0
 
         if dns.__contains__('dns'):
@@ -523,4 +524,5 @@ if __name__ == "__main__":
     #inputfile=opts.source_data_path
     #print('python input:',inputfile)
     generator(opts)
+    print('---------process finished------\n')
 

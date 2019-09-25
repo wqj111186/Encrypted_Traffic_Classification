@@ -73,7 +73,7 @@ if __name__=="__main__":
         df_drop[new_col] = df_drop[col].apply(pd.get_dummies)
 
     #map(df_drop[col].apply(pd.get_dummies), )
-    df_drop.drop(dummy_columns)
+    df_drop.drop(dummy_columns, inplace=True)
         
         
     #table = table.drop(['label'], axis = 1)

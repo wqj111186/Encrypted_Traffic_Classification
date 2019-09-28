@@ -557,9 +557,9 @@ def multi_process_generate(load_dir, save_dir, savename):
     files = []
     for fullname in glob.iglob(load_dir + '*.json'):
         filename = os.path.basename(fullname)
-        csvname = filename + '.csv'
+        csvname = filename.split('.')[0] + '.csv'
         if csvname in csvfiles:
-            os.rename(fullname, load_dir + '/processed_json/' + filename)
+            os.rename(fullname, load_dir + 'processed_json/' + filename)
         else:
             files.append(fullname)
             

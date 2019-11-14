@@ -31,7 +31,7 @@ class ML_Model(object):
             
         self.param_grid = param_grid
         self.tn = self.fp = self.fn = self.tp = -1
-        self.metrics = OrderedDict()
+        self.metrics = pd.DataFrame()
         self.vpn_metrics = OrderedDict()
         
         self.estimator = None
@@ -56,7 +56,10 @@ class ML_Model(object):
             print('in grid searchCV------->>>>\n')
             self.classifier = GridSearchCV(self.classifier, self.param_grid, cv=10, scoring='precision', n_jobs=-1)  # Do a 10-fold cross validation
             print('----->>>', self.classifier)
-            self.estimator = self.classifier.best_estimator_
+            self.estimator = self.classifier.estimator
+            search_result = self.estimator.fit(X_train, y_train)
+            self.is_trained = True
+            return
         elif random is True:
             self.classifier = RandomizedSearchCV(self.classifier, param_distributions=self.param_grid,
                                                  n_iter=10, scoring='precision',
@@ -77,7 +80,7 @@ class ML_Model(object):
             
         logger.info('Training classifier {}'.format(self.name))
         print('X_train.shape, y_train.shape', np.shape(X_train), np.shape(y_train))
-        search_result = self.classifier.fit(X_train, y_train)
+        
 #       main_tools.benchmark(self.classifier.fit, X_train, y_train) # fit the classifier with data
         logger.info('Trained classifier {}'.format(self.name))
         #self.training_error = self.classifier.score(X_train, y_train)
@@ -87,20 +90,20 @@ class ML_Model(object):
         #best_score_：成员提供优化过程期间观察到的最好的评分
         #具有键作为列标题和值作为列的dict，可以导入到DataFrame中。
         #注意，“params”键用于存储所有参数候选项的参数设置列表。
-        if self.param_grid is not None:
-            means = search_result.cv_results_['mean_test_score']
-            params = search_result.cv_results_['params']
-            for mean,param in zip(means,params):
-                print("%f  with:   %r" % (mean,param))
-                logger.debug("Grid search best score = {}".format(self.classifier.best_score_))
-                print("Grid search best score = {}".format(self.classifier.best_score_))
-                logger.debug("Grid search best estimator = {}".format(self.classifier.best_estimator_))
-                print("Grid search cv results = {}".format(self.classifier.cv_results_))
-                logger.debug("Grid search best estimator = {}".format(self.classifier.best_estimator_))
-                print("Grid search best estimator = {}".format(self.classifier.best_estimator_))
-        else:
-            logger.debug("Model parameters = {}".format(self.classifier.get_params()))
-        self.is_trained = True
+        #if self.param_grid is not None:
+            #means = search_result.cv_results_['mean_test_score']
+            #params = search_result.cv_results_['params']
+            #for mean,param in zip(means,params):
+                #print("%f  with:   %r" % (mean,param))
+                #logger.debug("Grid search best score = {}".format(self.classifier.best_score_))
+                #print("Grid search best score = {}".format(self.classifier.best_score_))
+                #logger.debug("Grid search best estimator = {}".format(self.classifier.best_estimator_))
+                #print("Grid search cv results = {}".format(self.classifier.cv_results_))
+                #logger.debug("Grid search best estimator = {}".format(self.classifier.best_estimator_))
+                #print("Grid search best estimator = {}".format(self.classifier.best_estimator_))
+        #else:
+            #logger.debug("Model parameters = {}".format(self.classifier.get_params()))
+        
 
     def predict(self, X_test, y_test):
         
@@ -108,9 +111,9 @@ class ML_Model(object):
             raise Exception('Model not trained, please run train()')
 
         self.score = self.estimator.score(X_test, y_test)
-        if self.name == "Random forest":
+        if self.name == "Random Forest":
             self.oob_score = self.estimator.oob_score_
-        if self.name in ("Random forest", 'XGBoost', 'Decision Tree'):
+        if self.name in ("Random Forest", 'XGBoost', 'Decision Tree'):
             self.y_pred = [round(value) for value in self.estimator.predict(X_test)]
         else:
             self.y_pred = self.estimator.predict(X_test)
@@ -122,10 +125,10 @@ class ML_Model(object):
         tn, fp, fn, tp = cnf_matrix.ravel()
         self.tn, self.fp, self.fn, self.tp = tn, fp, fn, tp
         tpr = -1 if tp <= 0 else float(tp) / (tp + fn)
-        metrics["TPR"] = tpr  # True Positive Rate
+        metrics["TPR"] = tpr  # True Positive Rate recall
         
         tnr = -1 if tn <= 0 else float(tn) / (fp + tn)
-        metrics["TNR"] = tnr  # True Negative Rate
+        metrics["TNR"] = tnr  # True Negative Rate 
         
         fpr = -1 if tn <= 0 else float(fp) / (fp + tn)
         metrics["FPR"] = fpr  # False Positive Rate
@@ -140,13 +143,13 @@ class ML_Model(object):
         metrics["Err"] = error_rate
         
         precision = -1 if tp <= 0 else float(tp) / (tp + fp)
-        self.metrics["Pre"] = precision  
+        metrics["Pre"] = precision  
         
         f_measure = -1 if precision <= 0 else float(2 * precision * tpr) / (precision + tpr)
         metrics["F-M"] = f_measure
         
         
-    def compute_metrics(self, FOLDER, y_test):
+    def compute_metrics(self, y_test):
         if self.y_pred is None:
             raise Exception('No prediction found, please run predict()')
        
@@ -155,6 +158,7 @@ class ML_Model(object):
         np.set_printoptions(precision = 2)
         class_names = [self.DIG2LABEL[i] for i in range(12)]
         # Plot non-normalized confusion matrix    
+        FOLDER = self.model_path
         if not os.path.exists(FOLDER):
             os.mkdir(FOLDER)
         MODEL_PATH = FOLDER + '/model.ckpt'
@@ -173,7 +177,7 @@ class ML_Model(object):
     
         #print(classification_report(y_t, y_p, target_names=class_names))
         report = classification_report(y_test, self.y_pred, target_names=class_names)
-        classification_report_csv(report, FOLDER)            
+        self.metrics = classification_report_csv(report, FOLDER)            
     
         # vor VPN or non-VPN
         y_true = [self.DIG2LABEL[i] for i in y_test]
@@ -280,48 +284,57 @@ class ML_Model(object):
             fig.savefig(self.model_path + '/XGB_Tree_Vision.png')        
         else:
             return
-   
-    def curve(self, models):
+
+        
+    @staticmethod
+    def models_metric_summary(models):
+        
+        
         from cycler import cycler
         import numpy as np
         import matplotlib as mpl
         import matplotlib.pyplot as plt
-       
+    
         # Define a list of markevery cases and color cases to plot
         colors = ['#1f77b4',
-                 '#ff7f0e',
-                 '#2ca02c',
-                 '#d62728',
-                 '#9467bd',
-                 '#8c564b']
-       
-       # Configure rcParams axes.prop_cycle to simultaneously cycle cases and colors.
-        mpl.rcParams['axes.prop_cycle'] = cycler(markevery=cases, color=colors)
-       
-       # Create data points and offsets
-        x = np.linspace(0, 2 * np.pi)
-        offsets = np.linspace(0, 2 * np.pi, 11, endpoint=False)
-        yy = np.transpose([np.sin(x + phi) for phi in offsets])
-       
-       # Set the plot curve with markers and a title
+                  '#ff7f0e',
+                  '#2ca02c',
+                  '#d62728',
+                  '#9467bd',
+                  '#8c564b']
+    
+        # Configure rcParams axes.prop_cycle to simultaneously cycle cases and colors.
+        #mpl.rcParams['axes.prop_cycle'] = cycler(markevery=cases, color=colors)
+    
+        # Create data points and offsets
+        #x = np.linspace(0, 2 * np.pi)
+        #offsets = np.linspace(0, 2 * np.pi, 11, endpoint=False)
+        #yy = np.transpose([np.sin(x + phi) for phi in offsets])
+    
+        # Set the plot curve with markers and a title
         fig = plt.figure()
         ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-       
-        for i in range(len(cases)):
-            ax.plot(yy[:, i], marker='o', label=str(cases[i]))
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-       
-        plt.title('Metrics ')
-       
-        plt.show()  
         
-    @staticmethod
-    def models_metric_summary(models):
+        metricx_frame = pd.DataFrame(columns=models[0].metrics.columns)
+        
+        for i in range(len(models)):            
+            metricx_frame.loc[models[i].name] = models[i].metrics.loc['avg']
+            
+            for j in range(len(models[i].columns - 1)):
+                metric = models[i].columns[j + 1]
+                ax.plot(models[i]['class'], models[i][metrics], marker='o', label=models[i].name)
+                ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    
+            plt.title('Metrics %s' % metric)    
+            #plt.show()
+            plt.savefig(models[i].model_path + '/metric/' )
+  
+        
         #from prettytable import PrettyTable
         #import operator
-        curve(models)
-        headers = ['Model', 'Best score']
-        headers += models[0].metrics.keys()
+        
+        #headers = ['Model', 'Best score']
+        #headers += models[0].metrics.keys()
         """
         table = PrettyTable(headers)
 
@@ -335,16 +348,16 @@ class ML_Model(object):
         return table.get_string(sort_key=operator.itemgetter(2, 1), sortby="Best score", reversesort=True)
         """
 
-        values = ""
-        for model in models:
-            if len(model.metrics) == 0:
-                raise Exception('No metrics found for model "{}", please run compute_metrics()'.format(model.name))
+        #values = ""
+        #for model in models:
+            #if len(model.metrics) == 0:
+                #raise Exception('No metrics found for model "{}", please run compute_metrics()'.format(model.name))
 
-            values += "\t".join([model.name, str(model.score)])
-            for v in list(map(str, model.metrics.values())):
-                values += ' '
-                values += v
-        return "\t".join(headers) + "\n" + values
+            #values += "\t".join([model.name, str(model.score)])
+            #for v in list(map(str, model.metrics.values())):
+                #values += ' '
+                #values += v
+        #return "\t".join(headers) + "\n" + values
 
     def save(self, filename):
         logger.info("Saving model to {}...".format(filename))

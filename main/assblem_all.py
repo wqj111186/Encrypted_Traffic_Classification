@@ -42,7 +42,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from model_botnet import ML_Model
-from train_botnet import train_ml
+from train_botnet import train_ml, final_train
 
 def next_batch(num, data, labels):
     num_el = data.shape[0]
@@ -689,16 +689,80 @@ def NBBonuli(opts):
 
 def ALLModels(opts):
     models = []
-    #models.append(XGB(opts))
-    models.append(RF(opts))
+    #models.append(XGB(opts))    
     #models.append(DTree(opts))
-    models.append(LR(opts))
+    #models.append(LR(opts))
     #models.append(SVMSVC(opts))
     #models.append(LINSVC(opts))
-    models.append(NBMULTI(opts))
+    #models.append(NBMULTI(opts))
     #models.append(NBBonuli(opts))
+    X_train, y_train = data_process(opts)
+    #y_train = to_categorical(y_train, num_classes = nclass)
+    X_train = normalize(X_train, norm = 'max', axis=0, copy = True, return_norm = False)
+    X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.3, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)      
+    FOLDER = 'clean_vpn12_rf'    
+    param_grid = {
+        'critire': ['gini', 'gain'],
+        'n_estimators': [200, 700],
+        'max_features': ['auto', 'sqrt', 'log2'],
+        'min_samples_split': np.arange(2, 30, 2),
+        'max_depth':np.arange(2, 31)         
+    }
+
+    classifier = RandomForestClassifier(n_jobs=-1, oob_score=True)
+    rf = ML_Model("Random Forest", classifier, param_grid)
+    rf.model_path = FOLDER
+    models.append(rf)
+    
+    FOLDER = 'clean_vpn12_lr'
+    classifier = LogisticRegression(multi_class='ovr', penalty='l2')
+    param_grid = dict(C=[0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000])
+    lr = ML_Model("Log. Regression", classifier, param_grid)    
+    lr.model_path = FOLDER
+    models.append(lr)
+    
+    classifier = BernoulliNB()        
+    FOLDER = 'clean_vpn12_NB-Bonulina'         
+    nb = ML_Model("NB-Bernoulli", classifier, None)
+    nb.model_path = FOLDER
+    models.append(nb)
+    
+    FOLDER = 'clean_vpn12_xgb'
+    xgb = XGBClassifier(
+            learning_rate=0.1,
+            n_estimators=1000,
+            objective='multi:softmax',
+            nthread=4,
+            scale_pos_weight=1,
+            seed=27,
+            num_classes = 12)
+    param_grid = {
+            'max_depth': range(3, 10, 2),
+            'min_child_weight': range(1, 6, 2),
+            'gamma': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 1, 1.5, 2, 5],
+            'subsample': [i / 10.0 for i in range(5, 11)],
+            'colsample_bytree': [i / 10.0 for i in range(5, 11)],
+            'reg_alpha': [1e-5, 1e-2, 0.1, 1, 100]
+        }    
+   
+    xgb = ML_Model('XGBoost', xgb, param_grid)
+    xgb.model_path = FOLDER
+    models.append(xgb)
+    
+    FOLDER = 'clean_vpn12_svc'
+    classifier = svm.SVC()
+    C_range = np.logspace(-2, 10, 13)    
+    gamma_range = np.logspace(-9, 3, 13)
+    param_grid = dict(gamma=gamma_range, C=C_range)  
+ 
+    svmsvc = ML_Model('SVM-SVC', classifier, param_grid)
+    svmsvc.model_path = FOLDER 
+    models.append(svmsvc)
+    
+    final_train(models, X_train, y_train, X_test, y_test, opts.sets)
     ML_Model.models_metric_summary(models)
-        
+            
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Training')

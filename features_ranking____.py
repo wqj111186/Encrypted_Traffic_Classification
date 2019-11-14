@@ -1,7 +1,7 @@
 from sklearn.datasets import load_boston
 from sklearn.linear_model import (LogisticRegression, Ridge, Lasso)                                
 from stability_selection import RandomizedLogisticRegression
-from sklearn.feature_selection import RFE, f_regression
+from sklearn.feature_selection import RFE, f_classif
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
@@ -63,7 +63,7 @@ from sklearn.feature_selection import SelectFromModel
 ##model = SelectFromModel(lsvc, prefit=True)
 ##X_new = model.transform(X)
 
-f, pval  = f_regression(x_train, y_train, center=True)
+f, pval  = f_classif(x_train, y_train)
 ranks["Corr."] = rank_to_dict(f, names)
 
 lg_l1 = LogisticRegression(penalty='l1', multi_class='ovr', solver='liblinear', max_iter=10000)
